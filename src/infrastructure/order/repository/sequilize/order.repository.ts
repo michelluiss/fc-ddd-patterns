@@ -1,4 +1,5 @@
 import Order from "../../../../domain/checkout/entity/order";
+import OrderItem from "../../../../domain/checkout/entity/order_item";
 import OrderItemModel from "./order-item.model";
 import OrderModel from "./order.model";
 
@@ -54,5 +55,20 @@ export default class OrderRepository {
         }
       )
     });
+  }
+
+  async find(id: string): Promise<Order> {
+    let orderModel;
+    try {
+      orderModel = await OrderModel.findOne({
+        where: { id },
+        include: ['items']
+      });
+    } catch (error) {
+      throw new Error("Order not found");
+    }
+
+    const orderItens = orderModel.items?.map((item) => new OrderItem(item.id, item.name, item.price, item.product_id, item.quantity))
+    return new Order(orderModel.id, orderModel.customer_id, orderItens);
   }
 }
