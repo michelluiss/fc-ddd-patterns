@@ -1,5 +1,8 @@
 import SendEmailWhenProductIsCreatedHandler from "../../product/event/handler/send-email-when-product-is-created.handler";
+import EnviaConsoleLog1Handler from "../../customer/event/handler/EnviaConsoleLog1Handler";
+import EnviaConsoleLog2Handler from "../../customer/event/handler/EnviaConsoleLog2Handler";
 import ProductCreatedEvent from "../../product/event/product-created.event";
+import CustomerCreatedEvent from "../../customer/event/customer-created.event";
 import EventDispatcher from "./event-dispatcher";
 
 describe("Domain events tests", () => {
@@ -78,5 +81,34 @@ describe("Domain events tests", () => {
     eventDispatcher.notify(productCreatedEvent);
 
     expect(spyEventHandler).toHaveBeenCalled();
+  });
+});
+
+describe("Domain events tests - Customer", () => {
+  it("should register two event handler", () => {
+    const eventDispatcher = new EventDispatcher();
+    const eventHandler = new EnviaConsoleLog1Handler();
+    const eventHandler2 = new EnviaConsoleLog2Handler();
+
+    const spyEventHandler = jest.spyOn(eventHandler, "handle");
+    const spyEventHandler2 = jest.spyOn(eventHandler2, "handle");
+
+    eventDispatcher.register("CustomerCreatedEvent", eventHandler);
+    eventDispatcher.register("CustomerCreatedEvent", eventHandler2);
+
+    expect(
+      eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]
+    ).toMatchObject(eventHandler);
+
+    const customerCreatedEvent = new CustomerCreatedEvent({
+      id: 1,
+      name: "Customer 1",
+    });
+
+    // Quando o notify for executado o EnviaConsoleLog1Handler.handle() EnviaConsoleLog2Handler.handle() deve ser chamado
+    eventDispatcher.notify(customerCreatedEvent);
+
+    expect(spyEventHandler).toHaveBeenCalled();
+    expect(spyEventHandler2).toHaveBeenCalled();
   });
 });
