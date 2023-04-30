@@ -1,11 +1,14 @@
 import SendEmailWhenProductIsCreatedHandler from "../../product/event/handler/send-email-when-product-is-created.handler";
 import EnviaConsoleLog1Handler from "../../customer/event/handler/EnviaConsoleLog1Handler";
 import EnviaConsoleLog2Handler from "../../customer/event/handler/EnviaConsoleLog2Handler";
+import EnviaConsoleLogHandler from "../../customer/event/handler/EnviaConsoleLogHandler";
 import ProductCreatedEvent from "../../product/event/product-created.event";
 import CustomerCreatedEvent from "../../customer/event/customer-created.event";
+import CustomerChangeAddressEvent from "../../customer/event/customer-change-address.event";
 import EventDispatcher from "./event-dispatcher";
+import EventChangeAddressInterface from "./event-change-address.interface";
 
-describe("Domain events tests", () => {
+describe("Domain events tests - Products", () => {
   it("should register an event handler", () => {
     const eventDispatcher = new EventDispatcher();
     const eventHandler = new SendEmailWhenProductIsCreatedHandler();
@@ -110,5 +113,30 @@ describe("Domain events tests - Customer", () => {
 
     expect(spyEventHandler).toHaveBeenCalled();
     expect(spyEventHandler2).toHaveBeenCalled();
+  });
+
+  it("should register event handler when change address", () => {
+    const eventDispatcher = new EventDispatcher();
+    const eventHandler = new EnviaConsoleLogHandler();
+
+    const spyEventHandler = jest.spyOn(eventHandler, "handle");
+
+    eventDispatcher.register("CustomerChangeAddressEvent", eventHandler);
+
+    expect(
+      eventDispatcher.getEventHandlers["CustomerChangeAddressEvent"][0]
+    ).toMatchObject(eventHandler);
+
+    const customerChangeAddressEvent = new CustomerChangeAddressEvent({
+      eventData: new Date(),
+      id: "1",
+      name: "Customer 1",
+      address: "Rua sapucaí, 007, 12345-00 Belo Horizonte",
+    } as EventChangeAddressInterface);
+
+    // Quando o notify for executado o EnviaConsoleLogHandler.handle() deve ser chamado
+    eventDispatcher.notify(customerChangeAddressEvent);
+
+    expect(spyEventHandler).toHaveBeenCalled();
   });
 });
